@@ -14,6 +14,8 @@ paths:
   /api/defense/search:
     get:
       operationId: searchDefenseLaw
+      security:
+        - actionApiKey: []
       summary: 방위사업 관련 법령과 행정규칙 검색
       description: >
         방위사업, 방위산업, 방위사업청, 국방조달, 국방획득, 방산계약, 절충교역 등 방위사업 관련 질의를 실시간 검색합니다.
@@ -49,6 +51,8 @@ paths:
   /api/defense/research:
     post:
       operationId: researchDefenseLaw
+      security:
+        - actionApiKey: []
       summary: 방위사업 관련 질의 종합 조사
       description: >
         복합적인 방위사업 관련 질문에 대해 법령, 행정규칙, 해석례 등 근거를 종합 조회합니다.
@@ -80,6 +84,8 @@ paths:
   /api/defense/document:
     post:
       operationId: getDefenseDocument
+      security:
+        - actionApiKey: []
       summary: 검색 결과의 문서 상세 조회
       description: >
         searchDefenseLaw 또는 researchDefenseLaw 결과에 포함된 MST, lawId, 행정규칙 ID, 결정례 ID를 이용해 상세 본문을 조회합니다.
