@@ -8,7 +8,7 @@ servers:
   - url: https://dapa-law-mcp.vercel.app
 
 security:
-  - bearerAuth: []
+  - actionApiKey: []
 
 paths:
   /api/defense/search:
@@ -101,9 +101,12 @@ paths:
 
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
+    actionApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: >
+        GPT Actions 인증값입니다. 값은 "Bearer ACTION_API_KEY" 형식으로 보내세요.
 
   schemas:
     BridgeSource:

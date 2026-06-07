@@ -13,8 +13,14 @@ export function authorizeActionRequest(req: Request): AuthResult {
     }
   }
 
-  const actual = req.headers.get("authorization")
-  if (actual !== `Bearer ${expected}`) {
+  const authorization = req.headers.get("authorization")
+  const apiKey = req.headers.get("x-api-key") ?? req.headers.get("api-key")
+  const authorized =
+    authorization === `Bearer ${expected}` ||
+    authorization === expected ||
+    apiKey === expected
+
+  if (!authorized) {
     return { kind: "unauthorized", status: 401, message: "Unauthorized" }
   }
 
