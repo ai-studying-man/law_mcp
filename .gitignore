@@ -1,6 +1,9 @@
 .env*.local
+.action-api-key.local
 .next
 node_modules
 coverage
 dist
 tsconfig.tsbuildinfo
+
+.vercel
