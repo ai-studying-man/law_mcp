@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: DAPA Law MCP Bridge
+  version: 0.1.0
+  description: >
+    방위사업 관련 법령, 행정규칙, 해석례를 korean-law-mcp 서버를 통해 실시간 조회하는 GPT Actions용 REST 브릿지입니다.
+servers:
+  - url: https://dapa-law-mcp.vercel.app
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/defense/search:
+    get:
+      operationId: searchDefenseLaw
+      summary: 방위사업 관련 법령과 행정규칙 검색
+      description: >
+        방위사업, 방위산업, 방위사업청, 국방조달, 국방획득, 방산계약, 절충교역 등 방위사업 관련 질의를 실시간 검색합니다.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: 방위사업 관련 검색어 또는 질문
+          schema:
+            type: string
+            examples:
+              - 방위사업관리규정 계약 관련 조항
+              - 방위사업법 무기체계 연구개발
+        - name: limit
+          in: query
+          required: false
+          description: 각 MCP 도구별 검색 결과 수
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 5
+      responses:
+        "200":
+          description: 검색 결과
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "401":
+          description: 인증 실패
+
+  /api/defense/research:
+    post:
+      operationId: researchDefenseLaw
+      summary: 방위사업 관련 질의 종합 조사
+      description: >
+        복합적인 방위사업 관련 질문에 대해 법령, 행정규칙, 해석례 등 근거를 종합 조회합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - question
+              properties:
+                question:
+                  type: string
+                  description: 방위사업 관련 질문
+                  examples:
+                    - 방위사업관리규정상 사업추진기본전략 관련 근거를 찾아줘
+                    - 방위사업법상 방산업체 지정과 관련된 규정을 확인해줘
+      responses:
+        "200":
+          description: 종합 조사 결과
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "401":
+          description: 인증 실패
+
+  /api/defense/document:
+    post:
+      operationId: getDefenseDocument
+      summary: 검색 결과의 문서 상세 조회
+      description: >
+        searchDefenseLaw 또는 researchDefenseLaw 결과에 포함된 MST, lawId, 행정규칙 ID, 결정례 ID를 이용해 상세 본문을 조회합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/LawDocumentRequest"
+                - $ref: "#/components/schemas/AdminRuleDocumentRequest"
+                - $ref: "#/components/schemas/DecisionDocumentRequest"
+      responses:
+        "200":
+          description: 문서 상세
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponse"
+        "401":
+          description: 인증 실패
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    BridgeSource:
+      type: object
+      properties:
+        tool:
+          type: string
+          description: 내부에서 호출한 MCP 도구명
+        text:
+          type: string
+          description: MCP 도구가 반환한 원문 텍스트
+        isError:
+          type: boolean
+          description: MCP 도구 오류 여부
+      required:
+        - tool
+        - text
+        - isError
+
+    SearchResponse:
+      type: object
+      properties:
+        allowed:
+          type: boolean
+          description: 방위사업 범위 허용 여부
+        message:
+          type: string
+          description: 차단 또는 안내 메시지
+        query:
+          type: string
+        question:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeSource"
+        retrievedAt:
+          type: string
+          format: date-time
+      required:
+        - allowed
+
+    DocumentResponse:
+      type: object
+      properties:
+        allowed:
+          type: boolean
+        document:
+          $ref: "#/components/schemas/BridgeSource"
+        retrievedAt:
+          type: string
+          format: date-time
+      required:
+        - allowed
+
+    LawDocumentRequest:
+      type: object
+      required:
+        - kind
+      properties:
+        kind:
+          type: string
+          enum:
+            - law
+        mst:
+          type: string
+          description: 법령 일련번호
+        lawId:
+          type: string
+          description: 법령 ID
+        article:
+          type: string
+          description: 조문 번호. 예 제12조
+
+    AdminRuleDocumentRequest:
+      type: object
+      required:
+        - kind
+        - id
+      properties:
+        kind:
+          type: string
+          enum:
+            - admin_rule
+        id:
+          type: string
+          description: 행정규칙 ID
+
+    DecisionDocumentRequest:
+      type: object
+      required:
+        - kind
+        - domain
+        - id
+      properties:
+        kind:
+          type: string
+          enum:
+            - decision
+        domain:
+          type: string
+          description: korean-law-mcp search_decisions 도메인. 예 interpretation, precedent, admin_appeal
+        id:
+          type: string
+          description: 결정례 또는 해석례 ID
+        full:
+          type: boolean
+          description: 전문 조회 여부
