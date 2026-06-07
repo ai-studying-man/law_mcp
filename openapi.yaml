@@ -88,10 +88,7 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: "#/components/schemas/LawDocumentRequest"
-                - $ref: "#/components/schemas/AdminRuleDocumentRequest"
-                - $ref: "#/components/schemas/DecisionDocumentRequest"
+              $ref: "#/components/schemas/DocumentRequest"
       responses:
         "200":
           description: 문서 상세
@@ -162,7 +159,7 @@ components:
       required:
         - allowed
 
-    LawDocumentRequest:
+    DocumentRequest:
       type: object
       required:
         - kind
@@ -171,47 +168,25 @@ components:
           type: string
           enum:
             - law
+            - admin_rule
+            - decision
+          description: >
+            law는 법령 본문 조회, admin_rule은 행정규칙 본문 조회, decision은 해석례·판례 등 결정례 본문 조회입니다.
         mst:
           type: string
-          description: 법령 일련번호
+          description: law 조회 시 사용할 법령 일련번호. lawId와 둘 중 하나가 필요합니다.
         lawId:
           type: string
-          description: 법령 ID
+          description: law 조회 시 사용할 법령 ID. mst와 둘 중 하나가 필요합니다.
         article:
           type: string
-          description: 조문 번호. 예 제12조
-
-    AdminRuleDocumentRequest:
-      type: object
-      required:
-        - kind
-        - id
-      properties:
-        kind:
-          type: string
-          enum:
-            - admin_rule
-        id:
-          type: string
-          description: 행정규칙 ID
-
-    DecisionDocumentRequest:
-      type: object
-      required:
-        - kind
-        - domain
-        - id
-      properties:
-        kind:
-          type: string
-          enum:
-            - decision
+          description: law 조회 시 특정 조문 번호. 예 제12조
         domain:
           type: string
-          description: korean-law-mcp search_decisions 도메인. 예 interpretation, precedent, admin_appeal
+          description: decision 조회 시 사용할 korean-law-mcp search_decisions 도메인. 예 interpretation, precedent, admin_appeal
         id:
           type: string
-          description: 결정례 또는 해석례 ID
+          description: admin_rule 또는 decision 조회 시 사용할 문서 ID
         full:
           type: boolean
-          description: 전문 조회 여부
+          description: decision 조회 시 전문 조회 여부
