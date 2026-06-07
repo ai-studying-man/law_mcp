@@ -1,4 +1,5 @@
 import type { McpToolResult } from "./client"
+import { normalizeDapaAdminRuleQuery } from "../defense/admin-rule-query"
 import { callKoreanLawMcp } from "./client"
 
 export type BridgeSource = {
@@ -24,11 +25,12 @@ export async function searchLaw(query: string, limit: number): Promise<BridgeSou
 }
 
 export async function searchAdminRules(query: string, limit: number): Promise<BridgeSource> {
+  const normalizedQuery = normalizeDapaAdminRuleQuery(query)
   const result = await callKoreanLawMcp({
     name: "execute_tool",
     arguments: {
       tool_name: "search_admin_rule",
-      params: { query, display: limit },
+      params: { query: normalizedQuery, display: limit },
     },
   })
   return toBridgeSource("search_admin_rule", result)
